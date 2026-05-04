@@ -9,3 +9,6 @@
 lcov.info
 /coverage/
 /data/
+
+# Sakila sample database (downloaded via `make sakila`)
+/sakila-db/
