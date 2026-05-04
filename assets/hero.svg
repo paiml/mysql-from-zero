@@ -45,7 +45,8 @@
 <!-- Title block — left third -->
 <g class="h">
   <text x="60" y="92" font-size="44" font-weight="700" fill="#eeeeee">MySQL from Zero</text>
-  <text x="60" y="132" font-size="20" fill="#a5d6ff" letter-spacing="0.05em">A 2-hour Coursera Project · Bash → Python → Rust</text>
+  <text x="60" y="132" font-size="20" fill="#a5d6ff" letter-spacing="0.05em">Rust for Data Engineering · Bash → Python → Rust against Sakila</text>
+  <text x="60" y="162" font-size="14" fill="#7ee787" letter-spacing="0.10em" font-weight="700">3 MODULES · 12 LESSONS · 4 RUNTIME CONTRACTS</text>
 </g>
 
 <!-- Three pipeline stops, evenly spaced -->
@@ -113,7 +114,7 @@
   template: HERO (README banner)
   canvas: 1280x480
   zones: bash@(240,300) | py@(600,300) | rust@(960,300) | sakila-pillar@(1100..1240, 200..400)
-  text_elements: 17
+  text_elements: 18
   palette_colors: [#0e1726, #1a2540, #1a1d23, #161b22, #36b37e, #7ee787, #ffab00, #ff9d1a, #9c84ff, #b8acff, #00758f, #00b8d9, #a5d6ff, #ff5630, #eeeeee]
   bounds_check: all elements within 0,0 → 1280,480
 -->
