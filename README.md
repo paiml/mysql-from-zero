@@ -20,12 +20,14 @@ from Rust via `sqlx` and `mysql_async`.
 ```bash
 git clone https://github.com/paiml/mysql-from-zero
 cd mysql-from-zero
-docker compose up -d
-docker exec -it mysql-from-zero mysql -uapp -pappdev sakila
-
-# In another shell, the Rust crate compiles and tests cleanly:
-cargo test --workspace
+make up        # docker compose up -d (MySQL 8.4 + empty `sakila` schema)
+make sakila    # download + load Sakila schema and data into the container
+make test      # cargo test --workspace
 ```
+
+Run `make help` to see every target. `make sakila` is idempotent — once
+`sakila-db/sakila-data.sql` exists locally, re-running just re-loads
+the schema (useful if you `DROP DATABASE` and want a fresh seed).
 
 ## Quick start — `top_customers_sqlx` Rust demo
 
@@ -33,11 +35,10 @@ The `top_customers_sqlx` example closes the loop the Duke videos open: the M1
 `bash-pipelines-with-mysql` lesson surfaces the top renters via `mysql -e ...`,
 the `mysql-to-python-webserver` lesson serves the same answer from a Python
 `http.server`, and this binary returns the identical row set through typed Rust
-via `sqlx::MySqlPool`. Bring the database up first (`docker compose up -d`),
-then run:
+via `sqlx::MySqlPool`. Bring the database up first, then run the demo:
 
 ```bash
-docker compose up -d
+make up && make sakila        # MySQL container + Sakila loaded (one-time)
 cargo run -p mysql-rust --example top_customers_sqlx
 ```
 
