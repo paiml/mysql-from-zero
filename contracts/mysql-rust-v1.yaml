@@ -1,0 +1,150 @@
+metadata:
+  version: 1.0.0
+  created: '2026-05-04'
+  author: 'PAIML Engineering'
+  description: |
+    Provable contracts for the mysql-rust workspace member of
+    paiml/mysql-from-zero (Coursera "MySQL from Zero" project).
+    Four runtime invariants enforced inside the
+    `top_customers_sqlx` example after a successful query against the
+    Sakila sample database. The YAML below is the formal spec linted by
+    `pv lint contracts/`; each obligation maps to an `assert!` call in
+    crates/mysql-rust/examples/top_customers_sqlx.rs.
+  references:
+    - 'mysql-from-zero README §Provable contracts'
+    - 'paiml/aprender (pv) — provable-contracts CLI'
+    - 'sql/02-queries/01_joins.sql — the query the binary executes'
+
+equations:
+  row_count_exact:
+    formula: 'len(rows) == 10'
+    domain: 'rows ∈ Vec<TopCustomer>'
+    codomain: 'bool'
+    lean_theorem: Theorems.MySqlRust.RowCountExact
+    postconditions:
+    - 'rows.len() == 10'
+
+  top_renter_has_rentals:
+    formula: 'rows[0].rental_count >= 1'
+    domain: 'rows ∈ Vec<TopCustomer>, rows non-empty'
+    codomain: 'bool'
+    lean_theorem: Theorems.MySqlRust.TopRenterHasRentals
+    postconditions:
+    - 'rows[0].rental_count >= 1'
+
+  customer_id_positive:
+    formula: 'forall r in rows. r.customer_id > 0'
+    domain: 'rows ∈ Vec<TopCustomer>'
+    codomain: 'bool'
+    lean_theorem: Theorems.MySqlRust.CustomerIdPositive
+    postconditions:
+    - 'all rows have customer_id > 0'
+
+  rental_count_descending:
+    formula: 'forall i in 0..len(rows)-1. rows[i].rental_count >= rows[i+1].rental_count'
+    domain: 'rows ∈ Vec<TopCustomer>, ordered by query'
+    codomain: 'bool'
+    lean_theorem: Theorems.MySqlRust.RentalCountDescending
+    postconditions:
+    - 'rental_count is monotonically non-increasing across rows'
+
+proof_obligations:
+  - type: postcondition
+    property: 'Row count is exactly 10'
+    formal: 'len(rows) == 10'
+    applies_to: top_customers_sqlx
+  - type: postcondition
+    property: 'Top renter has at least one rental'
+    formal: 'rows[0].rental_count >= 1'
+    applies_to: top_customers_sqlx
+  - type: invariant
+    property: 'All customer ids are positive'
+    formal: 'forall r in rows. r.customer_id > 0'
+    applies_to: top_customers_sqlx
+  - type: invariant
+    property: 'Result is sorted by rental_count descending'
+    formal: 'forall i in 0..len(rows)-1. rows[i].rental_count >= rows[i+1].rental_count'
+    applies_to: top_customers_sqlx
+
+enforcement:
+  row_count_exact:
+    description: 'LIMIT 10 in the SQL must return exactly 10 rows on the Sakila fixture.'
+    check: 'top_customers_sqlx assertion: rows.len() == 10'
+    severity: 'ERROR'
+
+  top_renter_has_rentals:
+    description: 'Top customer must have at least one rental — sentinel that the LEFT JOIN actually matched.'
+    check: 'top_customers_sqlx assertion on rows[0].rental_count'
+    severity: 'ERROR'
+
+  customer_id_positive:
+    description: 'AUTO_INCREMENT customer ids start at 1; zero or negative is data corruption.'
+    check: 'top_customers_sqlx loop assertion on every row.customer_id'
+    severity: 'ERROR'
+
+  rental_count_descending:
+    description: 'ORDER BY rental_count DESC must hold; reversed or unsorted output is a query bug.'
+    check: 'top_customers_sqlx pairwise assertion across the result vector'
+    severity: 'ERROR'
+
+falsification_tests:
+  - id: FALSIFY-MYSQL-001
+    rule: 'Row count is exactly 10'
+    prediction: 'For Sakila with default seed data, customer LEFT JOIN rental GROUP BY customer LIMIT 10 returns exactly 10 rows.'
+    test: 'top_customers_sqlx runtime assert on rows.len() == 10; smoke-tested in CI against a docker-compose Sakila.'
+    if_fails: 'Either the LIMIT clause was dropped from the SQL, or Sakila has fewer than 10 customers in the loaded fixture.'
+
+  - id: FALSIFY-MYSQL-002
+    rule: 'Top renter has at least one rental'
+    prediction: 'The customer at index 0 of the result has rental_count >= 1 in any non-empty Sakila fixture.'
+    test: 'top_customers_sqlx runtime assert on rows[0].rental_count >= 1; smoke-tested in CI.'
+    if_fails: 'The LEFT JOIN is finding zero rentals for every customer — most likely the join predicate is wrong or rental table is empty.'
+
+  - id: FALSIFY-MYSQL-003
+    rule: 'All customer ids are positive'
+    prediction: 'AUTO_INCREMENT customer.customer_id starts at 1, so every returned id is positive.'
+    test: 'top_customers_sqlx loop asserts r.customer_id > 0 on each row.'
+    if_fails: 'AUTO_INCREMENT was reset to 0 or negative ids were inserted out of band — data corruption signal.'
+
+  - id: FALSIFY-MYSQL-004
+    rule: 'Result is sorted by rental_count descending'
+    prediction: 'Pairwise comparison rows[i].rental_count >= rows[i+1].rental_count holds for all valid i.'
+    test: 'top_customers_sqlx pairwise assert across the result vector before emitting JSON.'
+    if_fails: 'ORDER BY rental_count DESC clause was removed or replaced with ASC — query produces wrong customer ranking.'
+
+qa_gate:
+  id: F-MYSQL-001
+  name: 'MySQL Rust Contract'
+  description: 'Four runtime invariants asserted in top_customers_sqlx after the typed sqlx query against Sakila.'
+  checks:
+    - 'row_count_exact'
+    - 'top_renter_has_rentals'
+    - 'customer_id_positive'
+    - 'rental_count_descending'
+  pass_criteria: 'All four falsification tests pass; runtime asserts never fire on the canonical Sakila fixture.'
+
+kani_harnesses:
+  - id: KANI-MYSQL-001
+    obligation: 'Row count is exactly 10'
+    property: 'len(rows) == 10 for any Sakila fixture with >= 10 customers'
+    bound: 4
+    strategy: exhaustive
+    harness: verify_row_count_exact
+  - id: KANI-MYSQL-002
+    obligation: 'Top renter has at least one rental'
+    property: 'rows[0].rental_count >= 1 when rows is non-empty'
+    bound: 4
+    strategy: exhaustive
+    harness: verify_top_renter_has_rentals
+  - id: KANI-MYSQL-003
+    obligation: 'All customer ids are positive'
+    property: 'forall r in rows. r.customer_id > 0'
+    bound: 4
+    strategy: exhaustive
+    harness: verify_customer_id_positive
+  - id: KANI-MYSQL-004
+    obligation: 'Result is sorted by rental_count descending'
+    property: 'forall i in 0..len(rows)-1. rows[i].rental_count >= rows[i+1].rental_count'
+    bound: 4
+    strategy: exhaustive
+    harness: verify_rental_count_descending

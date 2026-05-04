@@ -1,7 +1,14 @@
-# mysql-from-zero
+<p align="center">
+  <img src="assets/hero.svg" alt="mysql-from-zero — Bash → Python → Rust against Sakila, with sqlx::query!() compile-time gating" width="1280" />
+</p>
 
+[![CI](https://github.com/paiml/mysql-from-zero/actions/workflows/ci.yml/badge.svg)](https://github.com/paiml/mysql-from-zero/actions/workflows/ci.yml)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](#license)
 [![MSRV](https://img.shields.io/badge/MSRV-1.95-orange.svg)](rust-toolchain.toml)
+[![pmat comply](https://img.shields.io/badge/pmat%20comply-COMPLIANT-brightgreen.svg)](Makefile)
+[![pv lint](https://img.shields.io/badge/pv%20lint-PASS-brightgreen.svg)](contracts/)
+
+# mysql-from-zero
 
 Companion repo for the standalone Coursera course **MySQL from Zero**.
 
@@ -27,6 +34,11 @@ make test      # cargo test --workspace
 
 Run `make help` to see every target. `make sakila` is idempotent — once
 `sakila-db/sakila-data.sql` exists locally, re-running just re-loads
+the schema (useful if you `DROP DATABASE` and want a fresh seed). To
+nuke the database entirely (volume + container), run `make nuke` then
+`make up && make sakila`.
+
+Re-running just re-loads
 the schema (useful if you `DROP DATABASE` and want a fresh seed).
 
 ## Quick start — `top_customers_sqlx` Rust demo
