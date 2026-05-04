@@ -28,6 +28,11 @@ services:
       - --slow-query-log=ON
       - --slow-query-log-file=/var/lib/mysql/slow.log
       - --long-query-time=0.1
+      # Sakila ships stored functions; with binary logging on (the 8.4
+      # default), MySQL refuses CREATE FUNCTION unless we trust the
+      # creator OR grant SUPER to the loading user. Trust is the simpler
+      # dev-mode posture and is what the official Sakila docs recommend.
+      - --log-bin-trust-function-creators=ON
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -prootdev --silent"]
       interval: 5s

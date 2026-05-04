@@ -1,4 +1,5 @@
 SHELL := /bin/bash
+.DELETE_ON_ERROR:
 
 # Local MySQL container name (matches compose.yml services.mysql.container_name)
 MYSQL_CTR := mysql-from-zero
@@ -14,10 +15,10 @@ SAKILA_DIR := sakila-db
 help: ## Print available targets
 	@awk 'BEGIN {FS = ":.*##"; printf "Targets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-up: ## Start the local MySQL 8.4 container
+up: ## Start the MySQL 8.4 container via docker compose
 	docker compose up -d
 
-down: ## Stop the local MySQL container (keeps data volume)
+down: ## Stop the MySQL container (keeps the named volume)
 	docker compose down
 
 nuke: ## Stop the container AND delete the named data volume (full reset)
@@ -43,7 +44,7 @@ sakila: $(SAKILA_DIR)/sakila-data.sql wait ## Download Sakila + load schema and 
 logs: ## Tail the MySQL container logs (useful when the container is crash-looping)
 	docker compose logs -f mysql
 
-psql: ## Open an interactive mysql shell against the local container (passes extra args after --)
+psql: ## Open an interactive mysql shell against the running container (extra args after --)
 	docker compose exec mysql mysql -u$(MYSQL_USER) -p$(MYSQL_PASS) $(MYSQL_DB) $(filter-out $@,$(MAKECMDGOALS))
 
 $(SAKILA_DIR)/sakila-data.sql:
