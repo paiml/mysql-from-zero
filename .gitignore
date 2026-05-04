@@ -1,0 +1,11 @@
+/target
+**/*.rs.bk
+.DS_Store
+*.swp
+*.tmp
+.idea/
+.vscode/
+*.profraw
+lcov.info
+/coverage/
+/data/
