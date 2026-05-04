@@ -1,5 +1,7 @@
 SHELL := /bin/bash
 .DELETE_ON_ERROR:
+.SUFFIXES:
+.ONESHELL:
 
 # Local MySQL container name (matches compose.yml services.mysql.container_name)
 MYSQL_CTR := mysql-from-zero
@@ -13,7 +15,7 @@ SAKILA_DIR := sakila-db
 .PHONY: help up down nuke wait sakila logs psql clean test fmt lint
 
 help: ## Print available targets
-	@awk 'BEGIN {FS = ":.*##"; printf "Targets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*##"; printf "Targets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2 }' "$(MAKEFILE_LIST)"
 
 up: ## Start the MySQL 8.4 container via docker compose
 	docker compose up -d
@@ -49,12 +51,12 @@ psql: ## Open an interactive mysql shell against the running container (extra ar
 
 $(SAKILA_DIR)/sakila-data.sql:
 	@echo "→ downloading $(SAKILA_URL)..."
-	curl -fsSL $(SAKILA_URL) | tar xz
-	@test -f $(SAKILA_DIR)/sakila-schema.sql || (echo "✗ sakila-schema.sql not found after extract" && exit 1)
-	@test -f $(SAKILA_DIR)/sakila-data.sql || (echo "✗ sakila-data.sql not found after extract" && exit 1)
+	curl -fsSL "$(SAKILA_URL)" | tar xz || { echo "✗ Sakila download failed"; exit 1; }
+	@test -f "$(SAKILA_DIR)/sakila-schema.sql" || { echo "✗ sakila-schema.sql not found after extract"; exit 1; }
+	@test -f "$(SAKILA_DIR)/sakila-data.sql" || { echo "✗ sakila-data.sql not found after extract"; exit 1; }
 
 clean: ## Remove the downloaded Sakila tarball + extracted dir
-	rm -rf $(SAKILA_DIR)
+	rm -rf "$(SAKILA_DIR)" || { echo "✗ rm failed"; exit 1; }
 
 test: ## Run the workspace test suite
 	cargo test --workspace

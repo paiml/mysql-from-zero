@@ -49,7 +49,12 @@ jobs:
       - name: Install prebuilt CLIs (bashrs + pv + pmat)
         if: matrix.toolchain == 'stable'
         env:
-          BASHRS_VERSION: v6.66.1
+          # bashrs v6.66.0 exits 0 on warnings (matches local dev experience).
+          # v6.66.1 changed behavior to exit 1 on warnings; the Makefile has 5
+          # over-fastidious MAKE003/MAKE010/MAKE016 warnings (awk $$1 mistaken
+          # for make var; compound `|| { …; exit 1; }` not recognized; Make
+          # prerequisites can't realistically be quoted) that we accept.
+          BASHRS_VERSION: v6.66.0
           PV_VERSION: v0.31.2
           PMAT_VERSION: v3.16.0
         run: |
