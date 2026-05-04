@@ -13,9 +13,20 @@ services:
     volumes:
       - ./data:/var/lib/mysql
       - ./sql/01-schema:/docker-entrypoint-initdb.d:ro
+    # MySQL 8.4 compatibility:
+    # - `--default-authentication-plugin` was deprecated in 8.0.34 and REMOVED in 8.4;
+    #   caching_sha2_password is the default and no flag is needed.
+    # - General log + slow log paths point at /var/lib/mysql (writable by the mysql
+    #   user) instead of /var/log/mysql (does not exist in the official image).
     command:
-      - --default-authentication-plugin=caching_sha2_password
       - --general-log=ON
-      - --general-log-file=/var/log/mysql/general.log
+      - --general-log-file=/var/lib/mysql/general.log
       - --slow-query-log=ON
+      - --slow-query-log-file=/var/lib/mysql/slow.log
       - --long-query-time=0.1
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -prootdev --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 24    # up to 2 minutes for first-boot Sakila auto-init
+      start_period: 10s
