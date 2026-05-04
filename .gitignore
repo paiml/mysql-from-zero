@@ -8,7 +8,10 @@
 *.profraw
 lcov.info
 /coverage/
-/data/
 
 # Sakila sample database (downloaded via `make sakila`)
 /sakila-db/
+
+# Legacy bind-mount data dir from before compose switched to a named
+# volume — kept here so old checkouts don't accidentally re-add it.
+/data/

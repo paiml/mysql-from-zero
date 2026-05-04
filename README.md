@@ -27,6 +27,11 @@ make test      # cargo test --workspace
 
 Run `make help` to see every target. `make sakila` is idempotent — once
 `sakila-db/sakila-data.sql` exists locally, re-running just re-loads
+the schema (useful if you `DROP DATABASE` and want a fresh seed). To
+nuke the database entirely (volume + container), run `make nuke` then
+`make up && make sakila`.
+
+Re-running just re-loads
 the schema (useful if you `DROP DATABASE` and want a fresh seed).
 
 ## Quick start — `top_customers_sqlx` Rust demo

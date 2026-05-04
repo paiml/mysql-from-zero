@@ -11,7 +11,11 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./data:/var/lib/mysql
+      # Named volume — Docker manages lifecycle. Avoids the host-vs-container
+      # UID war that bind-mounting ./data:/var/lib/mysql triggers (the mysql
+      # user inside the container owns every file, so `rm -rf data` from the
+      # host fails without sudo). Wipe with `make nuke`.
+      - mysql_data:/var/lib/mysql
       - ./sql/01-schema:/docker-entrypoint-initdb.d:ro
     # MySQL 8.4 compatibility:
     # - `--default-authentication-plugin` was deprecated in 8.0.34 and REMOVED in 8.4;
@@ -30,3 +34,7 @@ services:
       timeout: 3s
       retries: 24    # up to 2 minutes for first-boot Sakila auto-init
       start_period: 10s
+
+volumes:
+  mysql_data:
+    name: mysql-from-zero-data
