@@ -27,6 +27,40 @@ docker exec -it mysql-from-zero mysql -uapp -pappdev sakila
 cargo test --workspace
 ```
 
+## Quick start — `top_customers_sqlx` Rust demo
+
+The `top_customers_sqlx` example closes the loop the Duke videos open: the M1
+`bash-pipelines-with-mysql` lesson surfaces the top renters via `mysql -e ...`,
+the `mysql-to-python-webserver` lesson serves the same answer from a Python
+`http.server`, and this binary returns the identical row set through typed Rust
+via `sqlx::MySqlPool`. Bring the database up first (`docker compose up -d`),
+then run:
+
+```bash
+docker compose up -d
+cargo run -p mysql-rust --example top_customers_sqlx
+```
+
+Sample output (top of the JSON array):
+
+```json
+[
+  {
+    "customer_id": 148,
+    "first_name": "ELEANOR",
+    "last_name": "HUNT",
+    "rental_count": 46
+  },
+  ...
+]
+```
+
+The demo expects the compose.yml-provided Sakila to be running on
+`127.0.0.1:3306` with `user=app password=appdev db=sakila`. Override with
+`MYSQL_URL=mysql://...` if your database lives elsewhere. Embedded runtime
+`assert!` contracts fail loudly if the query returns fewer than 10 rows, the
+top customer has 0 rentals, or the result is not sorted by rental count.
+
 ## Course outline
 
 - **M1** — MySQL Foundations (install, CLI, Sakila import)
