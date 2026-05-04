@@ -49,12 +49,7 @@ jobs:
       - name: Install prebuilt CLIs (bashrs + pv + pmat)
         if: matrix.toolchain == 'stable'
         env:
-          # bashrs v6.66.0 exits 0 on warnings (matches local dev experience).
-          # v6.66.1 changed behavior to exit 1 on warnings; the Makefile has 5
-          # over-fastidious MAKE003/MAKE010/MAKE016 warnings (awk $$1 mistaken
-          # for make var; compound `|| { …; exit 1; }` not recognized; Make
-          # prerequisites can't realistically be quoted) that we accept.
-          BASHRS_VERSION: v6.66.0
+          BASHRS_VERSION: v6.66.1
           PV_VERSION: v0.31.2
           PMAT_VERSION: v3.16.0
         run: |
@@ -78,7 +73,12 @@ jobs:
 
       - name: Lint Makefile (bashrs)
         if: matrix.toolchain == 'stable'
-        run: bashrs lint Makefile
+        # --fail-on error: warnings stay visible in the log but only real
+        # errors fail the build. The 5 remaining warnings are over-fastidious
+        # patterns (MAKE003 mistakes awk's $$1/$$2 for unquoted Make vars;
+        # MAKE010 doesn't recognize compound `|| { …; exit 1; }` blocks; Make
+        # prerequisites can't realistically be quoted to satisfy MAKE016).
+        run: bashrs lint --fail-on error Makefile
 
       - name: Lint compose.yml (docker compose config)
         if: matrix.toolchain == 'stable'
