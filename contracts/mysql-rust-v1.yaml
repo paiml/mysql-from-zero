@@ -13,7 +13,7 @@ metadata:
   references:
     - 'mysql-from-zero README §Provable contracts'
     - 'paiml/aprender (pv) — provable-contracts CLI'
-    - 'sql/02-queries/01_joins.sql — the query the binary executes'
+    - 'sql/02-queries/01_joins.sql — the same query as the TOP_CUSTOMERS_SQL constant the binary executes (the binary does not read the file)'
 
 equations:
   row_count_exact:

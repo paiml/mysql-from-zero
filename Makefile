@@ -41,13 +41,13 @@ sakila: $(SAKILA_DIR)/sakila-data.sql wait ## Download Sakila + load schema and 
 	docker compose exec -T mysql mysql -u$(MYSQL_USER) -p$(MYSQL_PASS) $(MYSQL_DB) < $(SAKILA_DIR)/sakila-schema.sql
 	@echo "→ loading sakila-data.sql..."
 	docker compose exec -T mysql mysql -u$(MYSQL_USER) -p$(MYSQL_PASS) $(MYSQL_DB) < $(SAKILA_DIR)/sakila-data.sql
-	@echo "✓ Sakila loaded. Verify: make psql -- -e 'SHOW TABLES;'"
+	@echo "✓ Sakila loaded. Verify: make psql ARGS=\"-e 'SHOW TABLES;'\""
 
 logs: ## Tail the MySQL container logs (useful when the container is crash-looping)
 	docker compose logs -f mysql
 
-psql: ## Open an interactive mysql shell against the running container (extra args after --)
-	docker compose exec mysql mysql -u$(MYSQL_USER) -p$(MYSQL_PASS) $(MYSQL_DB) $(filter-out $@,$(MAKECMDGOALS))
+psql: ## Open a mysql shell in the container (extra mysql args: make psql ARGS="-e 'SHOW TABLES;'")
+	docker compose exec mysql mysql -u$(MYSQL_USER) -p$(MYSQL_PASS) $(MYSQL_DB) $(ARGS)
 
 $(SAKILA_DIR)/sakila-data.sql:
 	@echo "→ downloading $(SAKILA_URL)..."
